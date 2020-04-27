@@ -34,8 +34,26 @@ class DraggableImageView(context: Context, attrs: AttributeSet) : ImageView(cont
     private var widgetDX: Float = 0F
     private var widgetInitialY: Float = 0F
     private var widgetDY: Float = 0F
+    private var marginStart = 0
+    private var marginTop = 0
+    private var marginEnd = 0
+    private var marginBottom = 0
 
     init {
+        val attributes = intArrayOf(android.R.attr.layout_marginStart, android.R.attr.layout_marginTop, android.R.attr.layout_marginEnd, android.R.attr.layout_marginBottom)
+        val typedArray = context.obtainStyledAttributes(attrs, attributes)
+        try {
+            marginStart = typedArray.getDimensionPixelOffset(0, 0)
+            @SuppressWarnings("ResourceType")
+            marginTop = typedArray.getDimensionPixelOffset(1, 0)
+            @SuppressWarnings("ResourceType")
+            marginEnd = typedArray.getDimensionPixelOffset(2, 0)
+            @SuppressWarnings("ResourceType")
+            marginBottom = typedArray.getDimensionPixelOffset(3, 0)
+        } finally {
+            typedArray.recycle()
+        }
+
         context.theme.obtainStyledAttributes(attrs, R.styleable.DraggableImageView, 0, 0).apply {
             try {
                 stickyAxis = getInteger(R.styleable.DraggableImageView_sticky, 0)
@@ -56,9 +74,9 @@ class DraggableImageView(context: Context, attrs: AttributeSet) : ImageView(cont
             val viewParent = v.parent as View
             val parentHeight = viewParent.height
             val parentWidth = viewParent.width
-            val xMax = parentWidth - v.width
+            val xMax = parentWidth - v.width - marginEnd
             val xMiddle = parentWidth / 2
-            val yMax = parentHeight - v.height
+            val yMax = parentHeight - v.height - marginBottom
             val yMiddle = parentHeight / 2
 
             when (event.actionMasked) {
@@ -70,12 +88,12 @@ class DraggableImageView(context: Context, attrs: AttributeSet) : ImageView(cont
                 }
                 MotionEvent.ACTION_MOVE -> {
                     var newX = event.rawX + widgetDX
-                    newX = max(0F, newX)
+                    newX = max(marginStart.toFloat(), newX)
                     newX = min(xMax.toFloat(), newX)
                     v.x = newX
 
                     var newY = event.rawY + widgetDY
-                    newY = max(0F, newY)
+                    newY = max(marginTop.toFloat(), newY)
                     newY = min(yMax.toFloat(), newY)
                     v.y = newY
 
@@ -94,11 +112,11 @@ class DraggableImageView(context: Context, attrs: AttributeSet) : ImageView(cont
                                     v.x = xMax.toFloat()
                             } else {
                                 if (mAnimate)
-                                    v.animate().x(0F).setDuration(Draggable.DURATION_MILLIS)
+                                    v.animate().x(marginStart.toFloat()).setDuration(Draggable.DURATION_MILLIS)
                                         .setUpdateListener { draggableListener?.onPositionChanged(v) }
                                         .start()
                                 else
-                                    v.x = 0F
+                                    v.x = marginStart.toFloat()
                             }
                         }
                         STICKY_AXIS_Y -> {
@@ -112,13 +130,13 @@ class DraggableImageView(context: Context, attrs: AttributeSet) : ImageView(cont
                                     v.y = yMax.toFloat()
                             } else {
                                 if (mAnimate)
-                                    v.animate().y(0F)
+                                    v.animate().y(marginTop.toFloat())
                                         .setDuration(Draggable.DURATION_MILLIS)
                                         .setUpdateListener { draggableListener?.onPositionChanged(v) }
                                         .start()
                                 else {
                                     if (mAnimate)
-                                        v.animate().y(0F).setDuration(Draggable.DURATION_MILLIS)
+                                        v.animate().y(marginTop.toFloat()).setDuration(Draggable.DURATION_MILLIS)
                                             .setUpdateListener {
                                                 draggableListener?.onPositionChanged(
                                                     v
@@ -126,7 +144,7 @@ class DraggableImageView(context: Context, attrs: AttributeSet) : ImageView(cont
                                             }
                                             .start()
                                     else
-                                        v.y = 0F
+                                        v.y = marginTop.toFloat()
                                 }
                             }
                         }
